@@ -1,5 +1,7 @@
 # Marabyte CI
 
+![Docker Build Status](https://img.shields.io/docker/build/marabyte/ci.svg?style=flat-square)
+
 This repo contains a Docker image with tools used for CI.
 
 ## Installed tools
