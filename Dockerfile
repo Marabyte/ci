@@ -1,5 +1,6 @@
 
 FROM buildpack-deps:jessie
+MAINTAINER Marabyte
 
 # Installs Python 3.6.1 : https://github.com/docker-library/python/blob/88ba87d31a3033d4dbefecf44ce25aa1b69ab3e5/3.6/Dockerfile
 
@@ -31,6 +32,9 @@ RUN groupadd --system chrome && \
     useradd --system --create-home --gid chrome --groups audio,video chrome && \
     mkdir --parents /home/chrome/reports && \
     chown --recursive chrome:chrome /home/chrome
+
+# Set chrome env
+ENV CHROME_BIN=/usr/bin/google-chrome
 
 ENV GPG_KEY 0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
 ENV PYTHON_VERSION 3.6.6
