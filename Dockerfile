@@ -36,9 +36,6 @@ RUN groupadd --system chrome && \
 # Set chrome env
 ENV CHROME_BIN=/usr/bin/google-chrome
 
-# Run Chrome non-privileged
-USER chrome
-
 ENV GPG_KEY 0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
 ENV PYTHON_VERSION 3.6.6
 
@@ -185,3 +182,6 @@ RUN cd /opt \
 
 # Installs AWS CLI
 RUN pip install awscli awsebcli --upgrade
+
+# Run Chrome non-privileged
+USER chrome
