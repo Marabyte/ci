@@ -183,5 +183,8 @@ RUN cd /opt \
 # Installs AWS CLI
 RUN pip install awscli awsebcli --upgrade
 
+# Installs Serverless
+RUN npm install -g serverless
+
 # Run Chrome non-privileged
 USER chrome

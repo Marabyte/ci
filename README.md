@@ -13,6 +13,7 @@ This repo contains a Docker image with tools used for CI.
 - pip 10.0.1
 - Brotli 1.0.5
 - Chrome 67 Headless
+- Serverless 1.28.0
 
 ## Installation
 
