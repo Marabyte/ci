@@ -110,8 +110,7 @@ RUN set -ex; \
 	rm -f get-pip.py
 
 
-# Installs Node 10.6.0 : https://github.com/nodejs/docker-node/blob/3e179a85703a6688a26486729b4466a92e818a84/10/jessie/Dockerfile
-
+# Installs Node 10.13.0 : https://github.com/nodejs/docker-node/blob/336fb229392876a5f0d893436aeccf8c80011eeb/10/jessie/Dockerfile
 RUN groupadd --gid 1000 node \
   && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
 
@@ -133,7 +132,7 @@ RUN set -ex \
     gpg --keyserver hkp://pgp.mit.edu:80 --recv-keys "$key" ; \
   done
 
-ENV NODE_VERSION 10.6.0
+ENV NODE_VERSION 10.13.0
 
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && case "${dpkgArch##*-}" in \
@@ -153,7 +152,7 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && rm "node-v$NODE_VERSION-linux-$ARCH.tar.xz" SHASUMS256.txt.asc SHASUMS256.txt \
   && ln -s /usr/local/bin/node /usr/local/bin/nodejs
 
-ENV YARN_VERSION 1.7.0
+ENV YARN_VERSION 1.10.1
 
 RUN set -ex \
   && for key in \
