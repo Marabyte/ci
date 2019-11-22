@@ -1,6 +1,7 @@
 
 FROM buildpack-deps:jessie
-MAINTAINER Marabyte
+LABEL version="1.1.7"
+LABEL maintainer="hnogueira@marabyte.com"
 
 # Installs Python 3.6.1 : https://github.com/docker-library/python/blob/88ba87d31a3033d4dbefecf44ce25aa1b69ab3e5/3.6/Dockerfile
 
@@ -110,11 +111,11 @@ RUN set -ex; \
 	rm -f get-pip.py
 
 
-# Installs Node 10.15.1 : https://github.com/nodejs/docker-node/blob/90043cdde5057865b94fec447ce193fb46b69e18/10/jessie/Dockerfile
+# Installs Node 12.13.1 : https://github.com/nodejs/docker-node/blob/90043cdde5057865b94fec447ce193fb46b69e18/10/jessie/Dockerfile
 RUN groupadd --gid 1000 node \
   && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
 
-ENV NODE_VERSION 10.15.1
+ENV NODE_VERSION 12.13.1
 
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && case "${dpkgArch##*-}" in \
@@ -182,9 +183,6 @@ RUN cd /opt \
 
 # Installs AWS CLI
 RUN pip install awscli awsebcli --upgrade
-
-# Installs Serverless
-RUN npm install -g serverless
 
 # Run Chrome non-privileged
 USER chrome
