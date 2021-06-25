@@ -1,6 +1,6 @@
 
 FROM buildpack-deps:buster
-LABEL version="1.2.0"
+LABEL version="1.2.1"
 LABEL maintainer="hnogueira@marabyte.com"
 
 # Installs Python 3.6.1 : https://github.com/docker-library/python/blob/88ba87d31a3033d4dbefecf44ce25aa1b69ab3e5/3.6/Dockerfile
@@ -14,12 +14,13 @@ ENV LANG C.UTF-8
 
 # runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-		tcl \
-		tk \
-	  && rm -rf /var/lib/apt/lists/*
+		libbluetooth-dev \
+		tk-dev \
+		uuid-dev \
+	&& rm -rf /var/lib/apt/lists/*
 
-		# Installs Chrome Headless
 
+# Install Chrome Headless
 ## Install latest chrome dev package.
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
@@ -28,31 +29,28 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /src/*.deb
 
-# Add a chrome user and setup home dir.
+## Add a chrome user and setup home dir.
 RUN groupadd --system chrome && \
     useradd --system --create-home --gid chrome --groups audio,video chrome && \
     mkdir --parents /home/chrome/reports && \
     chown --recursive chrome:chrome /home/chrome
 
-# Set chrome env
+## Set chrome env
 ENV CHROME_BIN=/usr/bin/google-chrome
 
-ENV GPG_KEY 0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
-ENV PYTHON_VERSION 3.6.6
+# Install Python
+
+ENV GPG_KEY A035C8C19219BA821ECEA86B64E628F8D684696D
+ENV PYTHON_VERSION 3.10.0b2
 
 RUN set -ex \
-	&& buildDeps=' \
-		dpkg-dev \
-		tcl-dev \
-		tk-dev \
-	' \
-	&& apt-get update && apt-get install -y $buildDeps --no-install-recommends && rm -rf /var/lib/apt/lists/* \
 	\
 	&& wget -O python.tar.xz "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz" \
 	&& wget -O python.tar.xz.asc "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz.asc" \
 	&& export GNUPGHOME="$(mktemp -d)" \
-	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$GPG_KEY" \
+	&& gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$GPG_KEY" \
 	&& gpg --batch --verify python.tar.xz.asc python.tar.xz \
+	&& { command -v gpgconf > /dev/null && gpgconf --kill all || :; } \
 	&& rm -rf "$GNUPGHOME" python.tar.xz.asc \
 	&& mkdir -p /usr/src/python \
 	&& tar -xJC /usr/src/python --strip-components=1 -f python.tar.xz \
@@ -63,23 +61,25 @@ RUN set -ex \
 	&& ./configure \
 		--build="$gnuArch" \
 		--enable-loadable-sqlite-extensions \
+		--enable-optimizations \
+		--enable-option-checking=fatal \
 		--enable-shared \
 		--with-system-expat \
 		--with-system-ffi \
 		--without-ensurepip \
 	&& make -j "$(nproc)" \
 	&& make install \
-	&& ldconfig \
-	\
-	&& apt-get purge -y --auto-remove $buildDeps \
+	&& rm -rf /usr/src/python \
 	\
 	&& find /usr/local -depth \
 		\( \
-			\( -type d -a \( -name test -o -name tests \) \) \
-			-o \
-			\( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
+			\( -type d -a \( -name test -o -name tests -o -name idle_test \) \) \
+			-o \( -type f -a \( -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) \) \
 		\) -exec rm -rf '{}' + \
-	&& rm -rf /usr/src/python
+	\
+	&& ldconfig \
+	\
+	&& python3 --version
 
 # make some useful symlinks that are expected to exist
 RUN cd /usr/local/bin \
@@ -89,11 +89,15 @@ RUN cd /usr/local/bin \
 	&& ln -s python3-config python-config
 
 # if this is called "PIP_VERSION", pip explodes with "ValueError: invalid truth value '<VERSION>'"
-ENV PYTHON_PIP_VERSION 10.0.1
+ENV PYTHON_PIP_VERSION 21.1.2
+# https://github.com/pypa/get-pip
+ENV PYTHON_GET_PIP_URL https://github.com/pypa/get-pip/raw/936e08ce004d0b2fae8952c50f7ccce1bc578ce5/public/get-pip.py
+ENV PYTHON_GET_PIP_SHA256 8890955d56a8262348470a76dc432825f61a84a54e2985a86cd520f656a6e220
 
 RUN set -ex; \
 	\
-	wget -O get-pip.py 'https://bootstrap.pypa.io/get-pip.py'; \
+	wget -O get-pip.py "$PYTHON_GET_PIP_URL"; \
+	echo "$PYTHON_GET_PIP_SHA256 *get-pip.py" | sha256sum --check --strict -; \
 	\
 	python get-pip.py \
 		--disable-pip-version-check \
@@ -104,7 +108,7 @@ RUN set -ex; \
 	\
 	find /usr/local -depth \
 		\( \
-			\( -type d -a \( -name test -o -name tests \) \) \
+			\( -type d -a \( -name test -o -name tests -o -name idle_test \) \) \
 			-o \
 			\( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
 		\) -exec rm -rf '{}' +; \
