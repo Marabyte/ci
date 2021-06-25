@@ -16,4 +16,4 @@ This repo contains a Docker image with tools used for CI.
 
 ## Installation
 
-`docker pull marabyte/ci`
+`docker pull marabyte/ci:1.2.2`
