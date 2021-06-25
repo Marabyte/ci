@@ -9,8 +9,8 @@ This repo contains a Docker image with tools used for CI.
 - Node.js 16.3.0
 - Yarn 1.13.0
 - npm 7.19.0
-- Python 3.6.6
-- pip 10.0.1
+- Python 3.10.0
+- pip 21.1.2
 - Brotli 1.0.5
 - Chrome 91 Headless
 
